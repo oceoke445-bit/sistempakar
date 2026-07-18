@@ -100,6 +100,42 @@
             </div>
         </div>
 
+        {{-- Modal kamera langsung (HP / laptop / tablet) --}}
+        <div id="cameraModal" class="fixed inset-0 z-[9999] hidden items-end justify-center sm:items-center sm:p-4 md:p-6">
+            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px]" onclick="closeCameraModal()"></div>
+            <div class="relative flex max-h-[100dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-slate-100 bg-white shadow-xl sm:max-h-[min(92dvh,720px)] sm:rounded-2xl">
+                <div class="shrink-0 px-4 pb-2 pt-4 sm:px-6 sm:pt-5">
+                    <h3 class="text-center text-base font-bold text-slate-900 sm:text-lg">Ambil dari Kamera</h3>
+                    <p id="cameraStatus" class="mt-1 text-center text-xs text-slate-500 sm:mt-2 sm:text-sm">Menyiapkan kamera…</p>
+                </div>
+
+                <div class="flex min-h-0 flex-1 flex-col px-4 sm:px-6">
+                    <div class="relative mx-auto w-full max-w-[min(100%,52dvh)] overflow-hidden rounded-xl bg-slate-900 aspect-square sm:max-w-[min(100%,58dvh)] sm:rounded-2xl md:max-w-[min(100%,420px)]">
+                        <video id="cameraVideo" class="absolute inset-0 h-full w-full object-cover scale-x-[-1]" playsinline autoplay muted></video>
+                        <canvas id="cameraCanvas" class="hidden"></canvas>
+                    </div>
+                    <p id="cameraError" class="mt-2 hidden text-center text-xs font-medium text-red-600 sm:mt-3 sm:text-sm"></p>
+                </div>
+
+                <div class="shrink-0 space-y-2 border-t border-slate-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:space-y-3 sm:px-6 sm:pb-5 sm:pt-4">
+                    <button type="button" id="cameraCaptureBtn" onclick="captureCameraPhoto()" disabled
+                            class="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-300 sm:py-3.5">
+                        <i class="bi bi-camera-fill mr-1.5"></i> Ambil Foto
+                    </button>
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+                        <button type="button" id="cameraSwitchBtn" onclick="switchCameraFacing()" disabled
+                                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:py-3">
+                            <i class="bi bi-arrow-repeat mr-1.5"></i> Ganti Kamera
+                        </button>
+                        <button type="button" onclick="closeCameraModal()"
+                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 sm:py-3">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Modal preview sebelum upload --}}
         <div id="photoPreviewModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
             <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px]" onclick="cancelPhotoPreview()"></div>
@@ -227,12 +263,21 @@
 <script>
 (function () {
     var modal = document.getElementById('photoModal');
+    var cameraModal = document.getElementById('cameraModal');
     var previewModal = document.getElementById('photoPreviewModal');
     var previewImg = document.getElementById('photoPreviewImg');
     var input = document.getElementById('photoFileInput');
     var form = document.getElementById('photoUploadForm');
     var uploading = document.getElementById('photoUploading');
+    var video = document.getElementById('cameraVideo');
+    var canvas = document.getElementById('cameraCanvas');
+    var cameraStatus = document.getElementById('cameraStatus');
+    var cameraError = document.getElementById('cameraError');
+    var captureBtn = document.getElementById('cameraCaptureBtn');
+    var switchBtn = document.getElementById('cameraSwitchBtn');
     var previewObjectUrl = null;
+    var mediaStream = null;
+    var facingMode = 'user';
 
     function showModal(el) {
         if (!el) return;
@@ -253,6 +298,101 @@
         }
     }
 
+    function setCameraError(msg) {
+        if (!cameraError) return;
+        if (msg) {
+            cameraError.textContent = msg;
+            cameraError.classList.remove('hidden');
+        } else {
+            cameraError.textContent = '';
+            cameraError.classList.add('hidden');
+        }
+    }
+
+    function stopCameraStream() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(function (track) {
+                track.stop();
+            });
+            mediaStream = null;
+        }
+        if (video) {
+            video.srcObject = null;
+        }
+        if (captureBtn) captureBtn.disabled = true;
+        if (switchBtn) switchBtn.disabled = true;
+    }
+
+    function assignFileToInput(file) {
+        if (!input || !file) return false;
+        try {
+            var dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+            return input.files && input.files.length > 0;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function showFilePreview(file) {
+        if (!file) return;
+        revokePreviewUrl();
+        previewObjectUrl = URL.createObjectURL(file);
+        if (previewImg) {
+            previewImg.src = previewObjectUrl;
+            previewImg.classList.remove('hidden');
+        }
+        showModal(previewModal);
+    }
+
+    async function startCameraStream() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Browser tidak mendukung akses kamera. Gunakan Chrome/Edge/Safari terbaru, atau pilih Galeri.');
+        }
+
+        stopCameraStream();
+        setCameraError('');
+        if (cameraStatus) cameraStatus.textContent = 'Meminta izin kamera…';
+        if (captureBtn) captureBtn.disabled = true;
+        if (switchBtn) switchBtn.disabled = true;
+
+        var constraints = {
+            audio: false,
+            video: {
+                facingMode: { ideal: facingMode },
+                width: { ideal: 1280 },
+                height: { ideal: 1280 },
+            },
+        };
+
+        try {
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (err) {
+            // Fallback: any camera without facingMode (some laptops)
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+        }
+
+        if (video) {
+            video.srcObject = mediaStream;
+            video.setAttribute('playsinline', 'true');
+            if (facingMode === 'user') {
+                video.classList.add('scale-x-[-1]');
+            } else {
+                video.classList.remove('scale-x-[-1]');
+            }
+            try {
+                await video.play();
+            } catch (e) {
+                // autoplay may already be running
+            }
+        }
+
+        if (cameraStatus) cameraStatus.textContent = 'Arahkan kamera, lalu tekan Ambil Foto';
+        if (captureBtn) captureBtn.disabled = false;
+        if (switchBtn) switchBtn.disabled = false;
+    }
+
     window.openPhotoModal = function () {
         showModal(modal);
     };
@@ -261,13 +401,90 @@
         hideModal(modal);
     };
 
+    window.closeCameraModal = function () {
+        stopCameraStream();
+        setCameraError('');
+        if (cameraStatus) cameraStatus.textContent = 'Menyiapkan kamera…';
+        hideModal(cameraModal);
+    };
+
+    window.openCameraCapture = async function () {
+        closePhotoModal();
+        showModal(cameraModal);
+        setCameraError('');
+        try {
+            await startCameraStream();
+        } catch (err) {
+            var msg = 'Tidak bisa membuka kamera.';
+            if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+                msg = 'Izin kamera ditolak. Izinkan kamera di browser, lalu coba lagi.';
+            } else if (err && (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError')) {
+                msg = 'Kamera tidak ditemukan di perangkat ini.';
+            } else if (err && err.message) {
+                msg = err.message;
+            }
+            if (cameraStatus) cameraStatus.textContent = 'Kamera tidak tersedia';
+            setCameraError(msg);
+            if (captureBtn) captureBtn.disabled = true;
+            if (switchBtn) switchBtn.disabled = true;
+        }
+    };
+
+    window.switchCameraFacing = async function () {
+        facingMode = facingMode === 'user' ? 'environment' : 'user';
+        try {
+            await startCameraStream();
+        } catch (err) {
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            setCameraError('Gagal mengganti kamera. Coba lagi.');
+        }
+    };
+
+    window.captureCameraPhoto = function () {
+        if (!video || !canvas || !mediaStream) return;
+        var w = video.videoWidth || 640;
+        var h = video.videoHeight || 640;
+        if (!w || !h) {
+            setCameraError('Kamera belum siap. Tunggu sebentar lalu coba lagi.');
+            return;
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Mirror selfie when using front camera
+        if (facingMode === 'user') {
+            ctx.translate(w, 0);
+            ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, w, h);
+
+        canvas.toBlob(function (blob) {
+            if (!blob) {
+                setCameraError('Gagal mengambil foto. Coba lagi.');
+                return;
+            }
+            var file = new File([blob], 'profil-kamera.jpg', { type: 'image/jpeg' });
+            if (!assignFileToInput(file)) {
+                setCameraError('Browser tidak mendukung menyimpan foto dari kamera. Coba Galeri / File.');
+                return;
+            }
+            stopCameraStream();
+            hideModal(cameraModal);
+            showFilePreview(file);
+        }, 'image/jpeg', 0.92);
+    };
+
     window.pickPhoto = function (source) {
+        if (source === 'camera') {
+            window.openCameraCapture();
+            return;
+        }
         if (!input) return;
         closePhotoModal();
         input.removeAttribute('capture');
-        if (source === 'camera') {
-            input.setAttribute('capture', 'user');
-        }
         input.value = '';
         input.click();
     };
@@ -296,17 +513,17 @@
     if (input) {
         input.addEventListener('change', function () {
             if (!input.files || !input.files.length) return;
-
-            revokePreviewUrl();
-            previewObjectUrl = URL.createObjectURL(input.files[0]);
-
-            if (previewImg) {
-                previewImg.src = previewObjectUrl;
-                previewImg.classList.remove('hidden');
-            }
-            showModal(previewModal);
+            showFilePreview(input.files[0]);
         });
     }
+
+    // Stop camera if page is hidden / unloaded
+    window.addEventListener('pagehide', stopCameraStream);
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            // keep stream only while modal open; if modal closed, already stopped
+        }
+    });
 })();
 </script>
 @endpush
