@@ -13,9 +13,10 @@ class PenyakitController extends Controller
         $q = trim((string) $request->query('q', ''));
         $builder = DB::table('penyakit');
         if ($q !== '') {
-            $builder->where(function ($w) use ($q) {
-                $w->where('nama_penyakit', 'ilike', '%'.$q.'%')
-                    ->orWhere('kode_penyakit', 'ilike', '%'.$q.'%');
+            $like = db_like_op();
+            $builder->where(function ($w) use ($q, $like) {
+                $w->where('nama_penyakit', $like, '%'.$q.'%')
+                    ->orWhere('kode_penyakit', $like, '%'.$q.'%');
             });
         }
         $rows = $builder->orderBy('kode_penyakit')->paginate(10)->withQueryString();

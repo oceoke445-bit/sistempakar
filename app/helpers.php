@@ -43,6 +43,24 @@ if (! function_exists('format_date_id')) {
     }
 }
 
+if (! function_exists('db_like_op')) {
+    /** Postgres: ilike; SQLite/MySQL: like (SQLite LIKE is ASCII case-insensitive). */
+    function db_like_op(): string
+    {
+        return \Illuminate\Support\Facades\DB::getDriverName() === 'pgsql' ? 'ilike' : 'like';
+    }
+}
+
+if (! function_exists('db_cast_text_like_sql')) {
+    /** SQL fragment with one `?` binding, e.g. CAST(id AS TEXT) LIKE ? */
+    function db_cast_text_like_sql(string $column): string
+    {
+        $op = db_like_op() === 'ilike' ? 'ILIKE' : 'LIKE';
+
+        return "CAST({$column} AS TEXT) {$op} ?";
+    }
+}
+
 if (! function_exists('format_date_id_long')) {
     /** Contoh: 29 Mei 2026 14:32 */
     function format_date_id_long(?string $iso): string

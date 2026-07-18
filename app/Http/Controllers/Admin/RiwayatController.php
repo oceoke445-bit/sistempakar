@@ -16,23 +16,24 @@ class RiwayatController extends Controller
         $query = DB::table('diagnosa');
 
         if ($q !== '') {
+            $like = db_like_op();
             $kodeFromNama = DB::table('penyakit')
-                ->where(function ($w) use ($q) {
-                    $w->where('nama_penyakit', 'ilike', '%'.$q.'%')
-                        ->orWhere('kode_penyakit', 'ilike', '%'.$q.'%');
+                ->where(function ($w) use ($q, $like) {
+                    $w->where('nama_penyakit', $like, '%'.$q.'%')
+                        ->orWhere('kode_penyakit', $like, '%'.$q.'%');
                 })
                 ->pluck('kode_penyakit')
                 ->all();
             $userIdsMatch = DB::table('users')
-                ->where(function ($w) use ($q) {
-                    $w->where('nama_lengkap', 'ilike', '%'.$q.'%')
-                        ->orWhere('email', 'ilike', '%'.$q.'%');
+                ->where(function ($w) use ($q, $like) {
+                    $w->where('nama_lengkap', $like, '%'.$q.'%')
+                        ->orWhere('email', $like, '%'.$q.'%');
                 })
                 ->pluck('id')
                 ->all();
-            $query->where(function ($w) use ($q, $kodeFromNama, $userIdsMatch) {
-                $w->whereRaw('CAST(id AS TEXT) ILIKE ?', ['%'.$q.'%'])
-                    ->orWhere('hasil_penyakit', 'ilike', '%'.$q.'%');
+            $query->where(function ($w) use ($q, $kodeFromNama, $userIdsMatch, $like) {
+                $w->whereRaw(db_cast_text_like_sql('id'), ['%'.$q.'%'])
+                    ->orWhere('hasil_penyakit', $like, '%'.$q.'%');
                 if ($kodeFromNama !== []) {
                     $w->orWhereIn('hasil_penyakit', $kodeFromNama);
                 }

@@ -77,6 +77,13 @@ return new class extends Migration
             }
 
             foreach ($this->relasi as [$penyakit, $gejalaKode]) {
+                if (! DB::table('penyakit')->where('kode_penyakit', $penyakit)->exists()) {
+                    continue;
+                }
+                if (! DB::table('gejala')->where('kode_gejala', $gejalaKode)->exists()) {
+                    continue;
+                }
+
                 DB::table('relasi')->insert([
                     'kode_penyakit' => $penyakit,
                     'kode_gejala' => $gejalaKode,

@@ -13,9 +13,10 @@ class GejalaController extends Controller
         $q = trim((string) $request->query('q', ''));
         $builder = DB::table('gejala');
         if ($q !== '') {
-            $builder->where(function ($w) use ($q) {
-                $w->where('nama_gejala', 'ilike', '%'.$q.'%')
-                    ->orWhere('kode_gejala', 'ilike', '%'.$q.'%');
+            $like = db_like_op();
+            $builder->where(function ($w) use ($q, $like) {
+                $w->where('nama_gejala', $like, '%'.$q.'%')
+                    ->orWhere('kode_gejala', $like, '%'.$q.'%');
             });
         }
         $rows = $builder->orderBy('kode_gejala')->paginate(10)->withQueryString();

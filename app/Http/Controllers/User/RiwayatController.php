@@ -21,16 +21,17 @@ class RiwayatController extends Controller
         $query = DB::table('diagnosa')->where('id_user', $auth['id']);
 
         if ($q !== '') {
+            $like = db_like_op();
             $kodeFromNama = DB::table('penyakit')
-                ->where(function ($w) use ($q) {
-                    $w->where('nama_penyakit', 'ilike', '%'.$q.'%')
-                        ->orWhere('kode_penyakit', 'ilike', '%'.$q.'%');
+                ->where(function ($w) use ($q, $like) {
+                    $w->where('nama_penyakit', $like, '%'.$q.'%')
+                        ->orWhere('kode_penyakit', $like, '%'.$q.'%');
                 })
                 ->pluck('kode_penyakit')
                 ->all();
-            $query->where(function ($w) use ($q, $kodeFromNama) {
-                $w->where('hasil_penyakit', 'ilike', '%'.$q.'%')
-                    ->orWhereRaw('CAST(id AS TEXT) ILIKE ?', ['%'.$q.'%']);
+            $query->where(function ($w) use ($q, $kodeFromNama, $like) {
+                $w->where('hasil_penyakit', $like, '%'.$q.'%')
+                    ->orWhereRaw(db_cast_text_like_sql('id'), ['%'.$q.'%']);
                 if ($kodeFromNama !== []) {
                     $w->orWhereIn('hasil_penyakit', $kodeFromNama);
                 }

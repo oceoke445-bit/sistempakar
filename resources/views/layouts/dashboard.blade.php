@@ -59,6 +59,7 @@
                     !Request::is('admin/gejala') && 
                     !Request::is('admin/printer') &&
                     !Request::is('admin/relasi') &&
+                    !Request::is('admin/pengguna') &&
                     !Request::is('user/dashboard') &&
                     !Request::is('user/diagnosa') &&
                     !Request::is('user/diagnosa/*') &&

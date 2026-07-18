@@ -18,3 +18,8 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Local / tooling (do not commit)
+/composer.phar
+/database/*.sqlite
+/database/*.sqlite-journal

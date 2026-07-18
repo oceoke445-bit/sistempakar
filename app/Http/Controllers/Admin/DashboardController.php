@@ -51,7 +51,18 @@ class DashboardController extends Controller
 
         // 2. Consolidate group-by queries for different ranges
         $today = Carbon::now();
-        
+        $driver = DB::getDriverName();
+        if ($driver === 'sqlite') {
+            $hourExpr = "CAST(strftime('%H', tanggal_diagnosa) AS INTEGER)";
+            $monthExpr = "strftime('%Y-%m', tanggal_diagnosa)";
+        } elseif (in_array($driver, ['mysql', 'mariadb'], true)) {
+            $hourExpr = 'HOUR(tanggal_diagnosa)';
+            $monthExpr = "DATE_FORMAT(tanggal_diagnosa, '%Y-%m')";
+        } else {
+            $hourExpr = 'CAST(EXTRACT(HOUR FROM tanggal_diagnosa) AS INTEGER)';
+            $monthExpr = "TO_CHAR(tanggal_diagnosa, 'YYYY-MM')";
+        }
+
         // A. 30 Days (for 1 Month range calculations if needed) & 7 Days
         $thirtyDaysAgo = (clone $today)->subDays(29)->startOfDay();
         $diagnosaByDate = DB::table('diagnosa')
@@ -99,8 +110,8 @@ class DashboardController extends Controller
         $todayStart = (clone $today)->startOfDay();
         $diagnosaToday = DB::table('diagnosa')
             ->where('tanggal_diagnosa', '>=', $todayStart->format('Y-m-d H:i:s'))
-            ->selectRaw('CAST(EXTRACT(HOUR FROM tanggal_diagnosa) AS INTEGER) as hour, COUNT(*) as count')
-            ->groupByRaw('EXTRACT(HOUR FROM tanggal_diagnosa)')
+            ->selectRaw("{$hourExpr} as hour, COUNT(*) as count")
+            ->groupByRaw($hourExpr)
             ->pluck('count', 'hour')
             ->all();
 
@@ -126,8 +137,8 @@ class DashboardController extends Controller
         $thisYearStart = (clone $today)->subMonths(11)->startOfMonth();
         $diagnosaByMonth = DB::table('diagnosa')
             ->where('tanggal_diagnosa', '>=', $thisYearStart->format('Y-m-d'))
-            ->selectRaw('TO_CHAR(tanggal_diagnosa, \'YYYY-MM\') as ym, COUNT(*) as count')
-            ->groupByRaw('TO_CHAR(tanggal_diagnosa, \'YYYY-MM\')')
+            ->selectRaw("{$monthExpr} as ym, COUNT(*) as count")
+            ->groupByRaw($monthExpr)
             ->pluck('count', 'ym')
             ->all();
 
