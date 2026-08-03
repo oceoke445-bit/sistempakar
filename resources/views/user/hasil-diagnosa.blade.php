@@ -55,6 +55,42 @@
                 @endif
             </div>
 
+            {{-- Pilihan Tindakan --}}
+            <div class="mt-5 print:hidden">
+                <h3 class="text-base font-bold text-slate-900 mb-4">Pilih Tindakan Perbaikan</h3>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {{-- Perbaikan Sendiri --}}
+                    <div class="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 p-6 shadow-sm">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                            <i class="bi bi-file-earmark-check text-xl"></i>
+                        </div>
+                        <p class="mt-4 font-bold text-emerald-950">Perbaikan sendiri</p>
+                        <p class="mt-2 text-sm leading-relaxed text-emerald-900/85">Kerusakan ini dapat diperbaiki sendiri dengan langkah-langkah di atas jika kondisi aman.</p>
+                        <form method="post" action="{{ route('user.hasil-diagnosa.tindakan', ['id' => $d->id]) }}" class="mt-5">
+                            @csrf
+                            <input type="hidden" name="tindakan" value="sendiri">
+                            <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md hover:bg-emerald-700 sm:w-auto sm:px-6">Lakukan sendiri</button>
+                        </form>
+                    </div>
+
+                    {{-- Panggil Teknisi --}}
+                    <div class="rounded-2xl border border-orange-200/80 bg-orange-50/80 p-6 shadow-sm">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
+                            <i class="bi bi-wrench-adjustable text-xl"></i>
+                        </div>
+                        <p class="mt-4 font-bold text-orange-950">Panggil teknisi</p>
+                        <p class="mt-2 text-sm leading-relaxed text-orange-900/85">Jika kerusakan tidak dapat diatasi atau tingkat berat, hubungi teknisi resmi.</p>
+                        @php $teknisiPhone = config('app.teknisi_phone'); @endphp
+                        <form method="post" action="{{ route('user.hasil-diagnosa.tindakan', ['id' => $d->id]) }}" class="mt-5"
+                              @if($teknisiPhone) onsubmit="window.open('https://wa.me/{{ $teknisiPhone }}','_blank')" @endif>
+                            @csrf
+                            <input type="hidden" name="tindakan" value="teknisi">
+                            <button type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-orange-500 py-3 text-sm font-bold text-white shadow-md hover:bg-orange-600 sm:w-auto sm:px-6">Hubungi teknisi</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             {{-- Rekomendasi --}}
             <div class="mt-5 rounded-xl border border-amber-100 bg-amber-50/80 px-5 py-4 print:border">
                 <div class="flex gap-3">
@@ -62,9 +98,9 @@
                         <i class="bi bi-exclamation-triangle-fill text-xl"></i>
                     </span>
                     <div>
-                        <h3 class="font-bold text-slate-900">Rekomendasi</h3>
+                        <h3 class="font-bold text-slate-900">Catatan</h3>
                         <p class="mt-1 text-sm leading-relaxed text-slate-700">
-                            Jika kerusakan masih berlanjut, sebaiknya hubungi teknisi.
+                            Pilih salah satu tindakan di atas untuk menyimpan hasil diagnosa ke riwayat Anda.
                         </p>
                     </div>
                 </div>
@@ -81,17 +117,12 @@
 
         {{-- Tombol aksi --}}
         @if ($penyakit)
-            <div class="mt-8 grid w-full grid-cols-3 gap-2 border-t border-slate-100 pt-6 sm:gap-3 print:hidden">
-                @include('partials.diagnosa-export-dropdown', ['diagnosaId' => $d->id, 'fullWidth' => true])
+            <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-6 print:hidden">
+                @include('partials.diagnosa-export-dropdown', ['diagnosaId' => $d->id, 'fullWidth' => false])
                 <a href="/user/diagnosa"
-                   class="inline-flex w-full min-w-0 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-3 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-50 sm:gap-2 sm:px-3 sm:text-sm">
-                    <i class="bi bi-arrow-repeat shrink-0"></i>
-                    <span class="truncate">Diagnosa Baru</span>
-                </a>
-                <a href="{{ route('user.hasil-diagnosa.simpan-riwayat', $d->id) }}"
-                   class="inline-flex w-full min-w-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-2 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 sm:gap-2 sm:px-3 sm:text-sm">
-                    <i class="bi bi-folder-check shrink-0"></i>
-                    <span class="truncate">Simpan ke Riwayat</span>
+                   class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-50">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Diagnosa Baru</span>
                 </a>
             </div>
         @endif

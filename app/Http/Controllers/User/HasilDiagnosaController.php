@@ -64,11 +64,11 @@ class HasilDiagnosaController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'ok' => true,
-                'redirect' => url('/user/riwayat'),
+                'redirect' => route('user.riwayat'),
             ]);
         }
 
-        return redirect('/user/riwayat?notice='.urlencode('Diagnosa telah disimpan ke riwayat.'));
+        return redirect()->route('user.riwayat', ['notice' => 'Diagnosa telah disimpan ke riwayat.']);
     }
 
     public function simpanRiwayat(Request $request, int $id)
