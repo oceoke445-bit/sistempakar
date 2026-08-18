@@ -29,8 +29,14 @@ trait LoadsUserDiagnosa
         $pct = $d->confidence !== null ? (float) $d->confidence * 100 : null;
         $tingkat = $penyakit && $penyakit->tingkat ? $penyakit->tingkat : 'ringan';
         $tingkatLabel = ucfirst(strtolower((string) $tingkat));
+        $penyebabLines = $penyakit && $penyakit->deskripsi
+            ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->deskripsi)))
+            : [];
         $solusiLines = $penyakit && $penyakit->solusi
             ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->solusi)))
+            : [];
+        $pencegahanLines = $penyakit && $penyakit->pencegahan
+            ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->pencegahan)))
             : [];
         $tindakanLabel = ($d->tindakan ?? null)
             ? diagnosa_tindakan_badge($d->tindakan)['label']
@@ -38,6 +44,6 @@ trait LoadsUserDiagnosa
         $rekomendasi = diagnosa_rekomendasi_label($d->tindakan ?? null, $penyakit->tingkat ?? null);
         $firstName = trim(explode(' ', trim($auth['nama_lengkap'] ?? 'Pengguna'))[0] ?: 'Pengguna');
 
-        return compact('d', 'penyakit', 'kodes', 'namaGejala', 'pct', 'tingkat', 'tingkatLabel', 'solusiLines', 'tindakanLabel', 'rekomendasi', 'firstName');
+        return compact('d', 'penyakit', 'kodes', 'namaGejala', 'pct', 'tingkat', 'tingkatLabel', 'penyebabLines', 'solusiLines', 'pencegahanLines', 'tindakanLabel', 'rekomendasi', 'firstName');
     }
 }

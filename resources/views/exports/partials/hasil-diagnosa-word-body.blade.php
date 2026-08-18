@@ -52,6 +52,23 @@
             {{ $penyakit->solusi }}
         </p>
     @endif
+
+    @if ($penyakit->pencegahan ?? null)
+        <p style="{{ $p }}margin-bottom:6pt;font-size:12pt;font-weight:bold;color:#0f172a;line-height:16pt;">
+            Pencegahan
+        </p>
+        @if (count($pencegahanLines ?? []))
+            @foreach ($pencegahanLines as $i => $line)
+                <p style="{{ $p }}margin-bottom:6pt;font-size:11pt;color:#334155;line-height:16pt;">
+                    <span style="font-weight:bold;">{{ $i + 1 }}.</span> {{ $line }}
+                </p>
+            @endforeach
+        @else
+            <p style="{{ $p }}margin-bottom:14pt;font-size:11pt;color:#334155;line-height:16pt;">
+                {{ $penyakit->pencegahan }}
+            </p>
+        @endif
+    @endif
 @endif
 
 @include('exports.partials.word-shade-open', ['bg' => '#f8fafc', 'mb' => '0pt'])

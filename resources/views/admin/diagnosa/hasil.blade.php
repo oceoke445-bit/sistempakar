@@ -6,6 +6,7 @@
     $tingkatClass = $tingkat === 'Berat' ? 'border border-red-200 bg-red-50 text-red-800' : ($tingkat === 'Sedang' ? 'border border-amber-200 bg-amber-50 text-amber-900' : 'border border-emerald-200 bg-emerald-50 text-emerald-800');
     $penyebabLines = $penyakit && $penyakit->deskripsi ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->deskripsi))) : [];
     $solusiLines = $penyakit && $penyakit->solusi ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->solusi))) : [];
+    $pencegahanLines = $penyakit && $penyakit->pencegahan ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->pencegahan))) : [];
 @endphp
 <div class="mx-auto max-w-4xl space-y-8">
     <div class="flex flex-col gap-4">
@@ -82,6 +83,22 @@
                 <div>
                     <h3 class="text-sm font-bold uppercase tracking-wide text-slate-500">Solusi</h3>
                     <p class="mt-3 text-sm leading-relaxed text-slate-700">{{ $penyakit->solusi }}</p>
+                </div>
+            @endif
+
+            @if (count($pencegahanLines))
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wide text-slate-500">Pencegahan</h3>
+                    <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-slate-700">
+                        @foreach ($pencegahanLines as $line)
+                            <li>{{ $line }}</li>
+                        @endforeach
+                    </ol>
+                </div>
+            @elseif ($penyakit && $penyakit->pencegahan)
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wide text-slate-500">Pencegahan</h3>
+                    <p class="mt-3 text-sm leading-relaxed text-slate-700">{{ $penyakit->pencegahan }}</p>
                 </div>
             @endif
 

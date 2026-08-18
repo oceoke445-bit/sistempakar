@@ -64,6 +64,25 @@
                 </p>
             @endif
         </div>
+
+        @if ($penyakit->pencegahan ?? null)
+            <div style="margin-bottom: 24px;">
+                <p style="margin: 0 0 8px; font-size: {{ $headingFontSize ?? '13px' }}; font-weight: bold; color: #0f172a;">
+                    Pencegahan
+                </p>
+                @if (count($pencegahanLines ?? []))
+                    <ol style="margin: 0; padding-left: 20px; font-size: {{ $bodyFontSize ?? '11px' }}; color: #334155; line-height: 1.65;">
+                        @foreach ($pencegahanLines as $line)
+                            <li style="margin-bottom: 6px;">{{ $line }}</li>
+                        @endforeach
+                    </ol>
+                @else
+                    <p style="margin: 0; font-size: {{ $bodyFontSize ?? '11px' }}; color: #334155; line-height: 1.65;">
+                        {{ $penyakit->pencegahan }}
+                    </p>
+                @endif
+            </div>
+        @endif
     @endif
 
     <div style="background-color: #f8fafc; border-radius: 12px; padding: 16px 18px;">

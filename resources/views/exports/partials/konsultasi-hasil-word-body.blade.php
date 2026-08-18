@@ -34,6 +34,23 @@
         <p style="{{ $p }}font-size:1pt;line-height:1pt;">&nbsp;</p>
     @include('exports.partials.word-shade-close')
 
+    @if (count($penyebabLines ?? []) || ($penyakit->deskripsi ?? null))
+        @include('exports.partials.word-shade-open', ['bg' => '#f8fafc'])
+            <p style="{{ $p }}margin-bottom:8pt;font-size:12pt;font-weight:bold;color:#0f172a;line-height:16pt;">
+                Penyebab Kerusakan
+            </p>
+            @if (count($penyebabLines ?? []))
+                @foreach ($penyebabLines as $i => $line)
+                    <p style="{{ $p }}margin-bottom:6pt;font-size:11pt;color:#334155;line-height:16pt;">
+                        <span style="font-weight:bold;">{{ $i + 1 }}.</span> {{ $line }}
+                    </p>
+                @endforeach
+            @else
+                <p style="{{ $p }}font-size:11pt;color:#334155;line-height:16pt;">{{ $penyakit->deskripsi }}</p>
+            @endif
+        @include('exports.partials.word-shade-close')
+    @endif
+
     @include('exports.partials.word-shade-open', ['bg' => '#eff6ff'])
         <p style="{{ $p }}margin-bottom:8pt;font-size:12pt;font-weight:bold;color:#0f172a;line-height:16pt;">
             Solusi Perbaikan
@@ -50,6 +67,23 @@
             <p style="{{ $p }}font-size:11pt;color:#64748b;">Belum ada solusi tercatat untuk kerusakan ini.</p>
         @endif
     @include('exports.partials.word-shade-close')
+
+    @if (count($pencegahanLines ?? []) || ($penyakit->pencegahan ?? null))
+        @include('exports.partials.word-shade-open', ['bg' => '#fffbeb'])
+            <p style="{{ $p }}margin-bottom:8pt;font-size:12pt;font-weight:bold;color:#0f172a;line-height:16pt;">
+                Pencegahan
+            </p>
+            @if (count($pencegahanLines ?? []))
+                @foreach ($pencegahanLines as $i => $line)
+                    <p style="{{ $p }}margin-bottom:6pt;font-size:11pt;color:#334155;line-height:16pt;">
+                        <span style="font-weight:bold;">{{ $i + 1 }}.</span> {{ $line }}
+                    </p>
+                @endforeach
+            @else
+                <p style="{{ $p }}font-size:11pt;color:#334155;line-height:16pt;">{{ $penyakit->pencegahan }}</p>
+            @endif
+        @include('exports.partials.word-shade-close')
+    @endif
 
     @include('exports.partials.word-shade-open', ['bg' => '#fffbeb', 'mb' => '0pt'])
         <p style="{{ $p }}margin-bottom:8pt;line-height:1pt;font-size:1pt;">

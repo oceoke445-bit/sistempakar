@@ -4,7 +4,9 @@
 
 @php
     $tingkat = $penyakit && $penyakit->tingkat ? ucfirst(strtolower((string) $penyakit->tingkat)) : 'Sedang';
+    $penyebabLines = $penyakit && $penyakit->deskripsi ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->deskripsi))) : [];
     $solusiLines = $penyakit && $penyakit->solusi ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->solusi))) : [];
+    $pencegahanLines = $penyakit && $penyakit->pencegahan ? array_filter(preg_split('/\r\n|\r|\n/', trim($penyakit->pencegahan))) : [];
 @endphp
 
 <div class="mx-auto max-w-5xl space-y-6 riwayat-detail-page">
@@ -60,9 +62,15 @@
         @if ($penyakit)
             <div class="space-y-3">
                 <h3 class="text-base font-bold text-slate-900">Penyebab</h3>
-                <p class="text-[15px] leading-relaxed text-slate-700">
-                    {{ $penyakit->deskripsi }}
-                </p>
+                @if (count($penyebabLines))
+                    <ul class="list-decimal pl-5 text-[15px] space-y-2.5 text-slate-700 leading-relaxed">
+                        @foreach ($penyebabLines as $line)
+                            <li>{{ $line }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-[15px] leading-relaxed text-slate-700">{{ $penyakit->deskripsi }}</p>
+                @endif
             </div>
 
             <div class="space-y-3">
@@ -77,6 +85,21 @@
                     <p class="text-[15px] leading-relaxed text-slate-700">{{ $penyakit->solusi }}</p>
                 @endif
             </div>
+
+            @if (count($pencegahanLines) || ($penyakit->pencegahan ?? null))
+                <div class="space-y-3">
+                    <h3 class="text-base font-bold text-slate-900">Pencegahan</h3>
+                    @if (count($pencegahanLines))
+                        <ol class="list-decimal pl-5 text-[15px] space-y-2.5 text-slate-700 leading-relaxed">
+                            @foreach ($pencegahanLines as $line)
+                                <li>{{ $line }}</li>
+                            @endforeach
+                        </ol>
+                    @else
+                        <p class="text-[15px] leading-relaxed text-slate-700">{{ $penyakit->pencegahan }}</p>
+                    @endif
+                </div>
+            @endif
         @endif
 
         <div class="rounded-xl bg-slate-50/90 p-5 sm:p-6">

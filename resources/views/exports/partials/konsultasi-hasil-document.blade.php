@@ -43,6 +43,25 @@
             </div>
         </div>
 
+        @if (count($penyebabLines ?? []) || ($penyakit->deskripsi ?? null))
+            <div style="background-color: #f8fafc; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px; font-size: {{ $headingFontSize ?? '13px' }}; font-weight: bold; color: #0f172a;">
+                    Penyebab Kerusakan
+                </p>
+                @if (count($penyebabLines ?? []))
+                    <ul style="margin: 0; padding-left: 20px; font-size: {{ $bodyFontSize ?? '11px' }}; color: #334155; line-height: 1.65;">
+                        @foreach ($penyebabLines as $line)
+                            <li style="margin-bottom: 6px;">{{ $line }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p style="margin: 0; font-size: {{ $bodyFontSize ?? '11px' }}; color: #334155; line-height: 1.65; white-space: pre-line;">
+                        {{ $penyakit->deskripsi }}
+                    </p>
+                @endif
+            </div>
+        @endif
+
         <div style="background-color: #eff6ff; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
             <p style="margin: 0 0 10px; font-size: {{ $headingFontSize ?? '13px' }}; font-weight: bold; color: #0f172a;">
                 Solusi Perbaikan
@@ -63,6 +82,25 @@
                 </p>
             @endif
         </div>
+
+        @if (count($pencegahanLines ?? []) || ($penyakit->pencegahan ?? null))
+            <div style="background-color: #fffbeb; border-radius: 14px; padding: 18px 20px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px; font-size: {{ $headingFontSize ?? '13px' }}; font-weight: bold; color: #0f172a;">
+                    Pencegahan
+                </p>
+                @if (count($pencegahanLines ?? []))
+                    <ol style="margin: 0; padding-left: 20px; font-size: {{ $bodyFontSize ?? '11px' }}; color: #334155; line-height: 1.65;">
+                        @foreach ($pencegahanLines as $line)
+                            <li style="margin-bottom: 6px;">{{ $line }}</li>
+                        @endforeach
+                    </ol>
+                @else
+                    <p style="margin: 0; font-size: {{ $bodyFontSize ?? '11px' }}; color: #334155; line-height: 1.65; white-space: pre-line;">
+                        {{ $penyakit->pencegahan }}
+                    </p>
+                @endif
+            </div>
+        @endif
 
         <div style="background-color: #fffbeb; border-radius: 12px; padding: 14px 16px;">
             <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border: none;">

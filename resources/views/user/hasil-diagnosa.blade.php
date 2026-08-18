@@ -39,6 +39,22 @@
                 </div>
             </div>
 
+            {{-- Penyebab Kerusakan --}}
+            @if (count($penyebabLines) || ($penyakit->deskripsi ?? null))
+                <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 sm:p-6 print:border print:bg-white">
+                    <h3 class="text-base font-bold text-slate-900">Penyebab Kerusakan</h3>
+                    @if (count($penyebabLines))
+                        <ul class="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-slate-700">
+                            @foreach ($penyebabLines as $line)
+                                <li>{{ $line }}</li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">{{ $penyakit->deskripsi }}</p>
+                    @endif
+                </div>
+            @endif
+
             {{-- Solusi Perbaikan --}}
             <div class="mt-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-5 sm:p-6 print:border print:bg-white">
                 <h3 class="text-base font-bold text-slate-900">Solusi Perbaikan</h3>
@@ -54,6 +70,22 @@
                     <p class="mt-4 text-sm text-slate-500">Belum ada solusi tercatat untuk kerusakan ini.</p>
                 @endif
             </div>
+
+            {{-- Pencegahan --}}
+            @if (count($pencegahanLines) || ($penyakit->pencegahan ?? null))
+                <div class="mt-5 rounded-2xl border border-amber-100 bg-amber-50/50 p-5 sm:p-6 print:border print:bg-white">
+                    <h3 class="text-base font-bold text-slate-900">Pencegahan</h3>
+                    @if (count($pencegahanLines))
+                        <ol class="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-slate-700">
+                            @foreach ($pencegahanLines as $line)
+                                <li>{{ $line }}</li>
+                            @endforeach
+                        </ol>
+                    @else
+                        <p class="mt-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">{{ $penyakit->pencegahan }}</p>
+                    @endif
+                </div>
+            @endif
 
             {{-- Pilihan Tindakan --}}
             <div class="mt-5 print:hidden">
